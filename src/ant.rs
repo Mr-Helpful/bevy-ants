@@ -1,16 +1,20 @@
-use std::{marker::PhantomData, ops::DerefMut};
+use std::f32::consts::PI;
+use std::ops::RangeInclusive;
 
 use bevy::input::{mouse::MouseButtonInput, ButtonState};
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
-use rand::Rng;
+use bevy_turborand::prelude::*;
 
 use crate::coords::MouseCoords;
-use crate::velocity::Velocity;
+use crate::kinetic::Kinetic;
 
 const ANT_COLOR: Color = Color::rgb(0.0, 1.0, 0.0);
 const ANT_SCALE: Vec2 = Vec2::splat(5.0);
-const ANT_SPEED: f32 = 20.0;
+
+const ANT_SPEED_LIMITS: RangeInclusive<f32> = 10.0..=30.0;
+const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 20.0..=30.0;
+
+const ANT_WANDER_STRENGTH: f32 = 0.2;
 
 #[derive(Component, Clone, Copy, Default)]
 pub struct AntMarker;
@@ -26,7 +30,8 @@ pub enum AntState {
 pub struct Ant {
   marker: AntMarker,
   brain: AntState,
-  velocity: Velocity,
+  rng: RngComponent,
+  kinetic: Kinetic,
   sprite: SpriteBundle,
 }
 
@@ -35,7 +40,8 @@ impl Default for Ant {
     Self {
       marker: default(),
       brain: default(),
-      velocity: default(),
+      rng: default(),
+      kinetic: default(),
       sprite: SpriteBundle {
         sprite: Sprite {
           color: ANT_COLOR,
@@ -49,18 +55,13 @@ impl Default for Ant {
 }
 
 impl Ant {
-  pub fn new<R: DerefMut>(position: Vec2, rng: &mut R) -> Self
-  where
-    R::Target: SeedableEntropySource,
-  {
-    let velocity = rng.gen::<Velocity>() * ANT_SPEED;
-    let mut transform = Transform::default();
-    transform.look_to(Vec3::Z, velocity.extend(0.0));
-    transform.translation = position.extend(0.0);
-
-    let mut ant = Self::default();
-    ant.sprite.transform = transform;
-    ant.velocity = velocity;
+  pub fn new(position: Vec2, rng: &mut ResMut<GlobalRng>) -> Self {
+    let mut ant = Self {
+      rng: RngComponent::from(rng),
+      kinetic: Kinetic::at(position),
+      ..default()
+    };
+    ant.sprite.transform = ant.kinetic.transform();
     ant
   }
 }
@@ -71,10 +72,10 @@ pub struct SpawnAntEvent(pub Vec2);
 
 /// Spawns new Ants within the simulation.
 /// Sets their velocity using a random source.
-fn spawn_ants<R: SeedableEntropySource>(
+fn spawn_ants(
   mut commands: Commands,
   mut spawn_events: EventReader<SpawnAntEvent>,
-  mut rng: ResMut<GlobalEntropy<R>>,
+  mut rng: ResMut<GlobalRng>,
 ) {
   for SpawnAntEvent(position) in &mut spawn_events {
     commands.spawn(Ant::new(*position, &mut rng));
@@ -97,14 +98,24 @@ fn add_ant(
   )
 }
 
+fn random_wander(mut query: Query<(&mut Kinetic, &mut RngComponent), With<AntMarker>>) {
+  for (mut kinetic, mut rng) in &mut query {
+    let accel = Vec2::from_angle(2.0 * PI * rng.f32());
+    kinetic.add_acceleration(accel * ANT_WANDER_STRENGTH);
+  }
+}
+
 /// Updates the position of all Ants in the simulation.
 /// Currently MVP: Moves in a straight line.
 ///
 /// @todo implement reaction to pheremones
 /// @todo parallelise with rayon's par_iter_mut and atomic fetch_add or mutexes
-fn move_ants(mut query: Query<(&mut Transform, &Velocity), With<AntState>>, time: Res<Time>) {
-  for (mut transform, velocity) in &mut query {
-    transform.translation += velocity.extend(0.0) * time.delta_seconds();
+fn move_ants(mut query: Query<(&mut Transform, &mut Kinetic), With<AntMarker>>, time: Res<Time>) {
+  for (mut transform, mut kinetic) in &mut query {
+    *transform = kinetic
+      .step(time.delta_seconds(), ANT_SPEED_LIMITS, ANT_ACCEL_LIMITS)
+      .zero_acceleration()
+      .transform();
   }
 }
 
@@ -123,26 +134,37 @@ fn despawn_ants(
 /// ## Overview
 ///
 /// Moves ants and allows ants to be spawned in a simulation.
-pub struct AntPlugin<R: SeedableEntropySource>(PhantomData<R>);
+#[derive(Default)]
+pub struct AntPlugin(Option<u64>);
 
-impl<R: SeedableEntropySource> Default for AntPlugin<R> {
-  fn default() -> Self {
-    Self(PhantomData)
+impl From<u64> for AntPlugin {
+  fn from(value: u64) -> Self {
+    Self(Some(value))
   }
 }
 
-impl<R: SeedableEntropySource> Plugin for AntPlugin<R>
-where
-  R::Seed: Send + Sync + Copy,
-{
+impl Plugin for AntPlugin {
   fn build(&self, app: &mut App) {
     // @todo add wall collisions to prevent ants escaping
+    let mut rng_plugin = RngPlugin::default();
+    if let Some(seed) = self.0 {
+      rng_plugin = rng_plugin.with_rng_seed(seed);
+    }
+
     app
-      .add_plugins(EntropyPlugin::<R>::default())
+      .add_plugins(rng_plugin)
       .add_event::<SpawnAntEvent>()
-      .add_systems(Update, add_ant)
-      .add_systems(Update, move_ants)
-      .add_systems(Update, despawn_ants)
-      .add_systems(Update, spawn_ants::<R>);
+      .add_systems(
+        Update,
+        (
+          // get the smallest no. ants spawned
+          despawn_ants,
+          // decide where to move for each ant
+          (random_wander,),
+          // run ant actions after deciding where to move
+          (move_ants, add_ant, spawn_ants),
+        )
+          .chain(),
+      );
   }
 }
