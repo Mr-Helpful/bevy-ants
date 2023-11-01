@@ -5,6 +5,7 @@ use bevy_prng::ChaCha8Rng;
 mod ant;
 mod camera;
 mod coords;
+mod kinetic;
 mod nest;
 mod velocity;
 
