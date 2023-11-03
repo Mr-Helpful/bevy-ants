@@ -12,8 +12,8 @@ use crate::kinetic::Kinetic;
 const ANT_COLOR: Color = Color::rgb(0.0, 1.0, 0.0);
 const ANT_SCALE: Vec2 = Vec2::splat(5.0);
 
-const ANT_SPEED_LIMITS: RangeInclusive<f32> = 10.0..=30.0;
-const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 20.0..=30.0;
+const ANT_SPEED_LIMITS: RangeInclusive<f32> = 20.0..=30.0;
+const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 25.0..=30.0;
 
 const ANT_WANDER_STRENGTH: f32 = 0.2;
 
