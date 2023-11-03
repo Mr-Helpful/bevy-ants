@@ -15,22 +15,31 @@ pub struct Kinetic {
 
 impl Kinetic {
   pub fn at(position: Vec2) -> Self {
-    Self::default().with_pos(position)
+    Self {
+      position,
+      ..default()
+    }
   }
 
-  pub fn with_pos(self, position: Vec2) -> Self {
-    Self { position, ..self }
-  }
-
-  pub fn add_acceleration(&mut self, acceleration: Vec2) -> &mut Self {
-    self.acceleration += acceleration;
+  /// Adds the acceleration needed to achieve `velocity`
+  pub fn move_to(&mut self, velocity: Vec2, strength: f32) -> &mut Self {
+    let accel = (velocity - self.velocity).normalize_or_zero();
+    self.acceleration += accel * strength;
     self
   }
 
-  /// Adds the acceleration needed to reach `velocity`
-  pub fn accelerate_to(&mut self, velocity: Vec2, strength: f32) -> &mut Self {
-    let accel = velocity - self.velocity;
-    self.add_acceleration(accel.normalize() * strength)
+  /// Adds the acceleration needed to move in `direction`
+  ///
+  /// # Arguments
+  ///
+  /// * `direction` - a unit vector specifying the direction to move towards
+  pub fn move_in(&mut self, direction: Vec2, strength: f32) -> &mut Self {
+    let vec_length = if self.velocity != Vec2::ZERO {
+      self.velocity.length()
+    } else {
+      0.0
+    };
+    self.move_to(direction.normalize_or_zero() * vec_length, strength)
   }
 
   /// Resets the currently stored acceleration
