@@ -56,24 +56,21 @@ pub trait VecClamp {
   fn clamp_length_range(self, range: impl InclusiveBound<f32>) -> Self;
 }
 
-impl VecClamp for Vec2 {
-  fn clamp_length_range(self, range: impl InclusiveBound<f32>) -> Self {
-    let min = range.start().unwrap_or(f32::MIN);
-    let max = range.end().unwrap_or(f32::MAX);
-    self.clamp_length(min, max)
-  }
+// these implementations are identical, so I'll use a macro.
+macro_rules! impl_VecClamp {
+  ($vec_name:ty) => {
+    impl VecClamp for $vec_name {
+      fn clamp_length_range(self, range: impl InclusiveBound<f32>) -> Self {
+        if self == Self::ZERO {
+          return self;
+        }
+        let min = range.start().unwrap_or(f32::MIN);
+        let max = range.end().unwrap_or(f32::MAX);
+        self.clamp_length(min, max)
+      }
+    }
+  };
 }
-impl VecClamp for Vec3 {
-  fn clamp_length_range(self, range: impl InclusiveBound<f32>) -> Self {
-    let min = range.start().unwrap_or(f32::MIN);
-    let max = range.end().unwrap_or(f32::MAX);
-    self.clamp_length(min, max)
-  }
-}
-impl VecClamp for Vec4 {
-  fn clamp_length_range(self, range: impl InclusiveBound<f32>) -> Self {
-    let min = range.start().unwrap_or(f32::MIN);
-    let max = range.end().unwrap_or(f32::MAX);
-    self.clamp_length(min, max)
-  }
-}
+impl_VecClamp!(Vec2);
+impl_VecClamp!(Vec3);
+impl_VecClamp!(Vec4);
