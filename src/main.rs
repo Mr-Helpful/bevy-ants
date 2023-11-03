@@ -4,6 +4,7 @@ use bevy::prelude::*;
 mod ant;
 mod camera;
 mod coords;
+mod events;
 mod kinetic;
 mod nest;
 

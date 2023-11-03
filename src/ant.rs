@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 
 use crate::coords::MouseCoords;
+use crate::events::SpawnEvent;
 use crate::kinetic::Kinetic;
 
 const ANT_COLOR: Color = Color::rgb(0.0, 1.0, 0.0);
@@ -66,25 +67,21 @@ impl Ant {
   }
 }
 
-/// An event to spawn a new Ant in the simulation.
-#[derive(Event, Clone, Copy)]
-pub struct SpawnAntEvent(pub Vec2);
-
 /// Spawns new Ants within the simulation.
 /// Sets their velocity using a random source.
 fn spawn_ants(
   mut commands: Commands,
-  mut spawn_events: EventReader<SpawnAntEvent>,
+  mut spawn_events: EventReader<SpawnEvent<Ant>>,
   mut rng: ResMut<GlobalRng>,
 ) {
-  for SpawnAntEvent(position) in &mut spawn_events {
-    commands.spawn(Ant::new(*position, &mut rng));
+  for event in &mut spawn_events {
+    commands.spawn(Ant::new(event.pos(), &mut rng));
   }
 }
 
 /// Adds an ant at the cursor on click.
 fn add_ant(
-  mut spawn_event: EventWriter<SpawnAntEvent>,
+  mut spawn_event: EventWriter<SpawnEvent<Ant>>,
   mut mouse_events: EventReader<MouseButtonInput>,
   coords: Res<MouseCoords>,
 ) {
@@ -94,14 +91,14 @@ fn add_ant(
       .filter(|&&MouseButtonInput { state, button, .. }| {
         (state == ButtonState::Pressed) & (button == MouseButton::Left)
       })
-      .map(|_| SpawnAntEvent(coords.0)),
+      .map(|_| SpawnEvent::from(coords.0)),
   )
 }
 
 fn random_wander(mut query: Query<(&mut Kinetic, &mut RngComponent), With<AntMarker>>) {
   for (mut kinetic, mut rng) in &mut query {
-    let accel = Vec2::from_angle(2.0 * PI * rng.f32());
-    kinetic.add_acceleration(accel * ANT_WANDER_STRENGTH);
+    let direction = Vec2::from_angle(2.0 * PI * rng.f32());
+    kinetic.move_in(direction, ANT_WANDER_STRENGTH);
   }
 }
 
@@ -153,7 +150,7 @@ impl Plugin for AntPlugin {
 
     app
       .add_plugins(rng_plugin)
-      .add_event::<SpawnAntEvent>()
+      .add_event::<SpawnEvent<Ant>>()
       .add_systems(
         Update,
         (
