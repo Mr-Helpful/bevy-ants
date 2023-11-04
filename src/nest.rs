@@ -16,7 +16,7 @@ const ANT_COST: Food = Food(5);
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct NestMarker;
 
-#[derive(Component, AddAssign, SubAssign, PartialEq, PartialOrd, Clone, Copy, Default)]
+#[derive(Component, AddAssign, SubAssign, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
 pub struct Food(u16);
 
 #[derive(Bundle, Clone)]
