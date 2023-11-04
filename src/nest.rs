@@ -74,7 +74,7 @@ fn add_nest_on_click(
 
 fn spawn_ants(
   mut spawn_events: EventWriter<SpawnEvent<Ant>>,
-  mut query: Query<(&mut Food, &Transform), (With<NestMarker>, Changed<Food>)>,
+  mut query: Query<(&mut Food, &Transform), With<NestMarker>>,
 ) {
   spawn_events.send_batch(query.iter_mut().filter_map(|(mut food, transform)| {
     (*food >= ANT_COST).then(|| {
