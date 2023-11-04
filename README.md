@@ -10,6 +10,10 @@
 
 ### Changelog
 
+#### 1.0.0
+
+- Large change to directory structure
+
 #### 0.2.0
 
 - Adds Nests that can spawn ants based on the amount of food they have
