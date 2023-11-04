@@ -4,7 +4,7 @@ use bevy::window::PrimaryWindow;
 use crate::camera::MainCamera;
 
 /// We will store the world position of the mouse cursor here.
-#[derive(Resource, Default)]
+#[derive(Resource, Clone, Copy, Default, Debug, PartialEq)]
 pub struct MouseCoords(pub Vec2);
 
 /// Conversion of mouse events to world coordinates
@@ -32,6 +32,7 @@ fn simple_cursor_system(
   }
 }
 
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct CoordsPlugin;
 
 impl Plugin for CoordsPlugin {

@@ -6,7 +6,7 @@ use limits::VecClamp;
 
 use self::limits::InclusiveBound;
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Component, Clone, Copy, Default, Debug, PartialEq)]
 pub struct Kinetic {
   pub position: Vec2,
   pub velocity: Vec2,

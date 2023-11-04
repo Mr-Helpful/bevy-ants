@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct CameraPlugin;
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct MainCamera;
 
 fn setup(mut commands: Commands) {

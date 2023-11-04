@@ -1,12 +1,18 @@
+use bevy::input::mouse::MouseButtonInput;
+use bevy::input::ButtonState;
 use bevy::prelude::*;
 use derive_more::{AddAssign, SubAssign};
 
-use crate::ant::SpawnAntEvent;
+use crate::ant::Ant;
+use crate::coords::MouseCoords;
+use crate::events::SpawnEvent;
 
 const NEST_COLOR: Color = Color::rgb(1.0, 1.0, 1.0);
+const NEST_SCALE: Vec2 = Vec2::splat(10.0);
+
 const ANT_COST: Food = Food(5);
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct NestMarker;
 
 #[derive(Component, AddAssign, SubAssign, PartialEq, PartialOrd, Clone, Copy, Default)]
@@ -27,6 +33,7 @@ impl Default for Nest {
       sprite: SpriteBundle {
         sprite: Sprite {
           color: NEST_COLOR,
+          custom_size: Some(NEST_SCALE),
           ..default()
         },
         ..default()
@@ -35,22 +42,43 @@ impl Default for Nest {
   }
 }
 
-// impl Nest {
-//   pub fn new(position: Vec2) -> Self {
-//     let mut nest = Self::default();
-//     nest.sprite.transform = Transform::from_translation(position.extend(0.0));
-//     nest
-//   }
-// }
+impl Nest {
+  pub fn new(position: Vec2) -> Self {
+    let mut nest = Self::default();
+    nest.sprite.transform = Transform::from_translation(position.extend(0.0));
+    nest
+  }
+}
+
+fn spawn_nest(mut spawn_events: EventReader<SpawnEvent<Nest>>, mut commands: Commands) {
+  for event in &mut spawn_events {
+    commands.spawn(Nest::new(event.pos()));
+  }
+}
+
+fn add_nest_on_click(
+  mut spawn_events: EventWriter<SpawnEvent<Nest>>,
+  mut mouse_events: EventReader<MouseButtonInput>,
+  coords: Res<MouseCoords>,
+) {
+  spawn_events.send_batch(
+    mouse_events
+      .iter()
+      .filter(|&&MouseButtonInput { button, state, .. }| {
+        (state == ButtonState::Pressed) && (button == MouseButton::Right)
+      })
+      .map(|_| SpawnEvent::from(coords.0)),
+  )
+}
 
 fn spawn_ants(
-  mut spawn_events: EventWriter<SpawnAntEvent>,
+  mut spawn_events: EventWriter<SpawnEvent<Ant>>,
   mut query: Query<(&mut Food, &Transform), (With<NestMarker>, Changed<Food>)>,
 ) {
   spawn_events.send_batch(query.iter_mut().filter_map(|(mut food, transform)| {
     (*food >= ANT_COST).then(|| {
       *food -= ANT_COST;
-      SpawnAntEvent(transform.translation.truncate())
+      SpawnEvent::from(transform.translation.truncate())
     })
   }));
 }
@@ -80,11 +108,14 @@ fn add_nest_food(keys: Res<Input<KeyCode>>, mut query: Query<&mut Food, With<Nes
 /// App::new().add_plugins(NestPlugin)
 /// # }
 /// ```
-#[derive(Default)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct NestPlugin;
 
 impl Plugin for NestPlugin {
   fn build(&self, app: &mut App) {
-    app.add_systems(Update, (spawn_ants, add_nest_food));
+    app.add_systems(
+      Update,
+      ((spawn_ants, add_nest_food), add_nest_on_click, spawn_nest).chain(),
+    );
   }
 }

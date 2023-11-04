@@ -17,10 +17,10 @@ const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 25.0..=30.0;
 
 const ANT_WANDER_STRENGTH: f32 = 0.2;
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct AntMarker;
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub enum AntState {
   #[default]
   Searching,
@@ -131,7 +131,7 @@ fn despawn_ants(
 /// ## Overview
 ///
 /// Moves ants and allows ants to be spawned in a simulation.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct AntPlugin(Option<u64>);
 
 impl From<u64> for AntPlugin {
