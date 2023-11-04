@@ -37,7 +37,7 @@ impl Kinetic {
     let vec_length = if self.velocity != Vec2::ZERO {
       self.velocity.length()
     } else {
-      0.0
+      1.0
     };
     self.move_to(direction.normalize_or_zero() * vec_length, strength)
   }
