@@ -80,7 +80,7 @@ fn spawn_ants(
 }
 
 /// Adds an ant at the cursor on click.
-fn add_ant(
+fn add_ant_on_click(
   mut spawn_event: EventWriter<SpawnEvent<Ant>>,
   mut mouse_events: EventReader<MouseButtonInput>,
   coords: Res<MouseCoords>,
@@ -159,7 +159,7 @@ impl Plugin for AntPlugin {
           // decide where to move for each ant
           (random_wander,),
           // run ant actions after deciding where to move
-          (move_ants, add_ant, spawn_ants),
+          (move_ants, add_ant_on_click, spawn_ants),
         )
           .chain(),
       );
