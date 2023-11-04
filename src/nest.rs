@@ -10,6 +10,7 @@ use crate::events::SpawnEvent;
 const NEST_COLOR: Color = Color::rgb(1.0, 1.0, 1.0);
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
 
+const START_FOOD: Food = Food(50);
 const ANT_COST: Food = Food(5);
 
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
@@ -29,7 +30,7 @@ impl Default for Nest {
   fn default() -> Self {
     Self {
       marker: default(),
-      food: default(),
+      food: START_FOOD,
       sprite: SpriteBundle {
         sprite: Sprite {
           color: NEST_COLOR,
@@ -113,7 +114,7 @@ pub struct NestPlugin;
 
 impl Plugin for NestPlugin {
   fn build(&self, app: &mut App) {
-    app.add_systems(
+    app.add_event::<SpawnEvent<Nest>>().add_systems(
       Update,
       ((spawn_ants, add_nest_food), add_nest_on_click, spawn_nest).chain(),
     );

@@ -11,12 +11,13 @@ mod nest;
 use ant::AntPlugin;
 use camera::CameraPlugin;
 use coords::CoordsPlugin;
+use nest::NestPlugin;
 
 fn main() {
   App::new()
     // Helpers / Camera management
     .add_plugins((DefaultPlugins, CameraPlugin, CoordsPlugin))
     // Ant Simulation
-    .add_plugins(AntPlugin::default())
+    .add_plugins((AntPlugin::default(), NestPlugin))
     .run();
 }
