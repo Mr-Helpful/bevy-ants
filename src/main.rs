@@ -1,17 +1,11 @@
 #![allow(clippy::type_complexity)]
 use bevy::prelude::*;
 
-mod ant;
-mod camera;
-mod coords;
-mod events;
-mod kinetic;
-mod nest;
+mod helpers;
+mod simulation;
 
-use ant::AntPlugin;
-use camera::CameraPlugin;
-use coords::CoordsPlugin;
-use nest::NestPlugin;
+use helpers::{CameraPlugin, CoordsPlugin};
+use simulation::{AntPlugin, NestPlugin};
 
 fn main() {
   App::new()

@@ -3,9 +3,8 @@ use bevy::input::ButtonState;
 use bevy::prelude::*;
 use derive_more::{AddAssign, SubAssign};
 
-use crate::ant::Ant;
-use crate::coords::MouseCoords;
-use crate::events::SpawnEvent;
+use super::ant::Ant;
+use crate::helpers::{MouseCoords, SpawnEvent};
 
 const NEST_COLOR: Color = Color::rgb(1.0, 1.0, 1.0);
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);

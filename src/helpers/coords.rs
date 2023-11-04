@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::camera::MainCamera;
+use super::camera::MainCamera;
 
 /// We will store the world position of the mouse cursor here.
 #[derive(Resource, Clone, Copy, Default, Debug, PartialEq)]

@@ -5,9 +5,7 @@ use bevy::input::{mouse::MouseButtonInput, ButtonState};
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 
-use crate::coords::MouseCoords;
-use crate::events::SpawnEvent;
-use crate::kinetic::Kinetic;
+use crate::helpers::{Kinetic, MouseCoords, SpawnEvent};
 
 const ANT_COLOR: Color = Color::rgb(0.0, 1.0, 0.0);
 const ANT_SCALE: Vec2 = Vec2::splat(5.0);
