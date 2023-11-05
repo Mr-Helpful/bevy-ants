@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 use std::ops::RangeInclusive;
 
-use bevy::input::{mouse::MouseButtonInput, ButtonState};
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 
@@ -78,19 +77,14 @@ fn spawn_ants(
 }
 
 /// Adds an ant at the cursor on click.
-fn add_ant_on_click(
-  mut spawn_event: EventWriter<SpawnEvent<Ant>>,
-  mut mouse_events: EventReader<MouseButtonInput>,
+fn spawn_ant_on_key(
+  mut spawn_events: EventWriter<SpawnEvent<Ant>>,
+  keys: Res<Input<KeyCode>>,
   coords: Res<MouseCoords>,
 ) {
-  spawn_event.send_batch(
-    mouse_events
-      .iter()
-      .filter(|&&MouseButtonInput { state, button, .. }| {
-        (state == ButtonState::Pressed) & (button == MouseButton::Left)
-      })
-      .map(|_| SpawnEvent::from(coords.0)),
-  )
+  if keys.just_pressed(KeyCode::A) {
+    spawn_events.send(SpawnEvent::from(coords.0))
+  }
 }
 
 fn random_wander(mut query: Query<(&mut Kinetic, &mut RngComponent), With<AntMarker>>) {
@@ -157,7 +151,7 @@ impl Plugin for AntPlugin {
           // decide where to move for each ant
           (random_wander,),
           // run ant actions after deciding where to move
-          (move_ants, add_ant_on_click, spawn_ants),
+          (move_ants, spawn_ant_on_key, spawn_ants),
         )
           .chain(),
       );

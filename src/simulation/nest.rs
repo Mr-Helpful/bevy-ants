@@ -51,19 +51,14 @@ fn spawn_nest(mut spawn_events: EventReader<SpawnEvent<Nest>>, mut commands: Com
   }
 }
 
-fn add_nest_on_click(
+fn spawn_nest_on_key(
   mut spawn_events: EventWriter<SpawnEvent<Nest>>,
-  mut mouse_events: EventReader<MouseButtonInput>,
+  keys: Res<Input<KeyCode>>,
   coords: Res<MouseCoords>,
 ) {
-  spawn_events.send_batch(
-    mouse_events
-      .iter()
-      .filter(|&&MouseButtonInput { button, state, .. }| {
-        (state == ButtonState::Pressed) && (button == MouseButton::Right)
-      })
-      .map(|_| SpawnEvent::from(coords.0)),
-  )
+  if keys.just_pressed(KeyCode::N) {
+    spawn_events.send(SpawnEvent::from(coords.0))
+  }
 }
 
 fn spawn_ants(
@@ -110,7 +105,7 @@ impl Plugin for NestPlugin {
   fn build(&self, app: &mut App) {
     app.add_event::<SpawnEvent<Nest>>().add_systems(
       Update,
-      ((spawn_ants, add_nest_food), add_nest_on_click, spawn_nest).chain(),
+      ((spawn_ants, add_nest_food), spawn_nest_on_key, spawn_nest).chain(),
     );
   }
 }
