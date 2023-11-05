@@ -5,13 +5,13 @@ mod helpers;
 mod simulation;
 
 use helpers::{CameraPlugin, CoordsPlugin};
-use simulation::{AntPlugin, NestPlugin};
+use simulation::{AntPlugin, FoodPlugin, NestPlugin};
 
 fn main() {
   App::new()
     // Helpers / Camera management
     .add_plugins((DefaultPlugins, CameraPlugin, CoordsPlugin))
     // Ant Simulation
-    .add_plugins((AntPlugin::default(), NestPlugin))
+    .add_plugins((AntPlugin::default(), NestPlugin, FoodPlugin))
     .run();
 }
