@@ -1,27 +1,22 @@
-use bevy::input::mouse::MouseButtonInput;
-use bevy::input::ButtonState;
 use bevy::prelude::*;
-use derive_more::{AddAssign, SubAssign};
 
 use super::ant::Ant;
+use super::food::FoodStore;
 use crate::helpers::{MouseCoords, SpawnEvent};
 
 const NEST_COLOR: Color = Color::rgb(1.0, 1.0, 1.0);
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
 
-const START_FOOD: Food = Food(50);
-const ANT_COST: Food = Food(5);
+const START_FOOD: FoodStore = FoodStore(50);
+const ANT_COST: FoodStore = FoodStore(5);
 
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct NestMarker;
 
-#[derive(Component, AddAssign, SubAssign, PartialEq, PartialOrd, Clone, Copy, Default, Debug)]
-pub struct Food(u16);
-
 #[derive(Bundle, Clone)]
 pub struct Nest {
   marker: NestMarker,
-  food: Food,
+  store: FoodStore,
   sprite: SpriteBundle,
 }
 
@@ -29,7 +24,7 @@ impl Default for Nest {
   fn default() -> Self {
     Self {
       marker: default(),
-      food: START_FOOD,
+      store: START_FOOD,
       sprite: SpriteBundle {
         sprite: Sprite {
           color: NEST_COLOR,
@@ -86,10 +81,10 @@ fn spawn_ants(
 /// Adds food to all nests in the simulation on F pressed
 ///
 /// @todo change to clicking on a nest adding food instead
-fn add_nest_food(keys: Res<Input<KeyCode>>, mut query: Query<&mut Food, With<NestMarker>>) {
+fn add_nest_food(keys: Res<Input<KeyCode>>, mut query: Query<&mut FoodStore, With<NestMarker>>) {
   if keys.just_pressed(KeyCode::F) {
     for mut food in &mut query {
-      *food += Food(1);
+      *food += FoodStore(1);
     }
   }
 }
