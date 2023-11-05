@@ -4,7 +4,7 @@ use super::ant::Ant;
 use super::food::FoodStore;
 use crate::helpers::{MouseCoords, SpawnEvent};
 
-const NEST_COLOR: Color = Color::rgb(1.0, 1.0, 1.0);
+const NEST_COLOR: Color = Color::RED;
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
 
 const START_FOOD: FoodStore = FoodStore(50);

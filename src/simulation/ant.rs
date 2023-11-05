@@ -6,8 +6,8 @@ use bevy_turborand::prelude::*;
 
 use crate::helpers::{Kinetic, MouseCoords, SpawnEvent};
 
-const ANT_COLOR: Color = Color::rgb(0.0, 1.0, 0.0);
-const ANT_SCALE: Vec2 = Vec2::splat(5.0);
+const ANT_COLOR: Color = Color::BLUE;
+const ANT_SCALE: Vec2 = Vec2::splat(2.0);
 
 const ANT_SPEED_LIMITS: RangeInclusive<f32> = 20.0..=30.0;
 const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 25.0..=30.0;
