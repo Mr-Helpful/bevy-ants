@@ -5,10 +5,20 @@
 - [X] Makes ants choose random directions
 - [X] Add Nests
 - [ ] Add Food
+  - [X] Add Food entities
+  - [ ] Enable Food pickup by Ants and Nests
 - [ ] Add Pheremones
 - [ ] Make Ants follow Pheremones
 
 ### Changelog
+
+#### 1.1.0
+
+- Adds Food entities
+  - These are present on the map and represent a store of food
+- Updates dependancies
+  - `bevy = 0.12`
+  - `bevy_turborand = 0.7`
 
 #### 1.0.0
 
