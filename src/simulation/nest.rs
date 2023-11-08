@@ -46,7 +46,7 @@ impl Nest {
 }
 
 fn spawn_nest(mut spawn_events: EventReader<SpawnEvent<Nest>>, mut commands: Commands) {
-  for event in spawn_events.read() {
+  for event in spawn_events.iter() {
     commands.spawn(Nest::new(event.pos()));
   }
 }
