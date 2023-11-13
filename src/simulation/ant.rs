@@ -1,10 +1,9 @@
-use std::f32::consts::PI;
-use std::ops::RangeInclusive;
-
+use super::food::FoodStore;
+use crate::helpers::{Kinetic, MouseCoords, RectSensor, SpawnEvent};
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
-
-use crate::helpers::{Kinetic, MouseCoords, SpawnEvent};
+use std::f32::consts::PI;
+use std::ops::RangeInclusive;
 
 const ANT_COLOR: Color = Color::BLUE;
 const ANT_SCALE: Vec2 = Vec2::splat(2.0);
@@ -28,8 +27,10 @@ pub enum AntState {
 pub struct Ant {
   marker: AntMarker,
   brain: AntState,
+  food: FoodStore,
   rng: RngComponent,
   kinetic: Kinetic,
+  collider: RectSensor,
   sprite: SpriteBundle,
 }
 
@@ -38,8 +39,10 @@ impl Default for Ant {
     Self {
       marker: default(),
       brain: default(),
+      food: default(),
       rng: default(),
       kinetic: default(),
+      collider: RectSensor::from(ANT_SCALE),
       sprite: SpriteBundle {
         sprite: Sprite {
           color: ANT_COLOR,

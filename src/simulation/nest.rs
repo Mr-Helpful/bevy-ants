@@ -1,8 +1,7 @@
-use bevy::prelude::*;
-
 use super::ant::Ant;
 use super::food::FoodStore;
-use crate::helpers::{MouseCoords, SpawnEvent};
+use crate::helpers::{MouseCoords, RectSensor, SpawnEvent};
+use bevy::prelude::*;
 
 const NEST_COLOR: Color = Color::RED;
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
@@ -17,6 +16,7 @@ pub struct NestMarker;
 pub struct Nest {
   marker: NestMarker,
   store: FoodStore,
+  collider: RectSensor,
   sprite: SpriteBundle,
 }
 
@@ -25,6 +25,7 @@ impl Default for Nest {
     Self {
       marker: default(),
       store: START_FOOD,
+      collider: RectSensor::from(NEST_SCALE),
       sprite: SpriteBundle {
         sprite: Sprite {
           color: NEST_COLOR,
