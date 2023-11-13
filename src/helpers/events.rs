@@ -1,6 +1,5 @@
-use std::marker::PhantomData;
-
 use bevy::prelude::*;
+use std::marker::PhantomData;
 
 #[derive(Event, Clone, Copy, Default, Debug, PartialEq)]
 pub struct SpawnEvent<T>(pub Vec2, PhantomData<T>);
