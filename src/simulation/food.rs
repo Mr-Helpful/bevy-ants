@@ -66,6 +66,26 @@ fn spawn_food_on_keypress(
   }
 }
 
+fn consume_food(
+  mut consumers: Query<(Entity, &mut FoodStore), Without<FoodMarker>>,
+  mut food: Query<(Entity, &mut FoodStore), With<FoodMarker>>,
+  mut commands: Commands,
+  context: Res<RapierContext>,
+) {
+  // This is O(mn) but I've tried to minimise this as much as possible
+  for (source_id, mut source) in food.iter_mut() {
+    // @todo can parallelise here
+    if let Some(mut store) = consumers
+      .iter_mut()
+      .find_map(|(id, store)| context.intersection_pair(source_id, id).map(|_| store))
+    {
+      commands.entity(source_id).despawn();
+      *store += *source;
+      *source = FoodStore(0);
+    }
+  }
+}
+
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct FoodPlugin;
 
@@ -73,6 +93,6 @@ impl Plugin for FoodPlugin {
   fn build(&self, app: &mut App) {
     app
       .add_event::<SpawnEvent<Food>>()
-      .add_systems(Update, (spawn_food, spawn_food_on_keypress));
+      .add_systems(Update, (spawn_food, spawn_food_on_keypress, consume_food));
   }
 }
