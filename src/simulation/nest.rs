@@ -74,17 +74,6 @@ fn spawn_ants(
   }));
 }
 
-/// Adds food to all nests in the simulation on F pressed
-///
-/// @todo change to clicking on a nest adding food instead
-fn add_nest_food(keys: Res<Input<KeyCode>>, mut query: Query<&mut FoodStore, With<NestMarker>>) {
-  if keys.just_pressed(KeyCode::F) {
-    for mut food in &mut query {
-      *food += FoodStore(1);
-    }
-  }
-}
-
 /// ## Overview
 ///
 /// Allows nests within a simulation to keep track of the food that they
@@ -104,9 +93,8 @@ pub struct NestPlugin;
 
 impl Plugin for NestPlugin {
   fn build(&self, app: &mut App) {
-    app.add_event::<SpawnEvent<Nest>>().add_systems(
-      Update,
-      ((spawn_ants, add_nest_food), spawn_nest_on_key, spawn_nest).chain(),
-    );
+    app
+      .add_event::<SpawnEvent<Nest>>()
+      .add_systems(Update, (spawn_ants, spawn_nest_on_key, spawn_nest).chain());
   }
 }
