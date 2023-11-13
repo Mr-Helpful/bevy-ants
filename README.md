@@ -2,11 +2,9 @@
 
 ### TODO
 
-- [X] Makes ants choose random directions
-- [X] Add Nests
-- [ ] Add Food
+- [X] Add Food
   - [X] Add Food entities
-  - [ ] Enable Food pickup by Ants and Nests
+  - [X] Enable Food pickup by Ants and Nests
 - [ ] Add Pheremones
 - [ ] Make Ants follow Pheremones
 

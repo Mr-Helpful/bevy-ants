@@ -1,8 +1,7 @@
-use bevy::prelude::*;
-
 use super::ant::Ant;
 use super::food::FoodStore;
-use crate::helpers::{MouseCoords, SpawnEvent};
+use crate::helpers::{MouseCoords, RectSensor, SpawnEvent};
+use bevy::prelude::*;
 
 const NEST_COLOR: Color = Color::RED;
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
@@ -17,6 +16,7 @@ pub struct NestMarker;
 pub struct Nest {
   marker: NestMarker,
   store: FoodStore,
+  collider: RectSensor,
   sprite: SpriteBundle,
 }
 
@@ -25,6 +25,7 @@ impl Default for Nest {
     Self {
       marker: default(),
       store: START_FOOD,
+      collider: RectSensor::from(NEST_SCALE),
       sprite: SpriteBundle {
         sprite: Sprite {
           color: NEST_COLOR,
@@ -46,7 +47,7 @@ impl Nest {
 }
 
 fn spawn_nest(mut spawn_events: EventReader<SpawnEvent<Nest>>, mut commands: Commands) {
-  for event in spawn_events.read() {
+  for event in spawn_events.iter() {
     commands.spawn(Nest::new(event.pos()));
   }
 }
@@ -73,17 +74,6 @@ fn spawn_ants(
   }));
 }
 
-/// Adds food to all nests in the simulation on F pressed
-///
-/// @todo change to clicking on a nest adding food instead
-fn add_nest_food(keys: Res<Input<KeyCode>>, mut query: Query<&mut FoodStore, With<NestMarker>>) {
-  if keys.just_pressed(KeyCode::F) {
-    for mut food in &mut query {
-      *food += FoodStore(1);
-    }
-  }
-}
-
 /// ## Overview
 ///
 /// Allows nests within a simulation to keep track of the food that they
@@ -103,9 +93,8 @@ pub struct NestPlugin;
 
 impl Plugin for NestPlugin {
   fn build(&self, app: &mut App) {
-    app.add_event::<SpawnEvent<Nest>>().add_systems(
-      Update,
-      ((spawn_ants, add_nest_food), spawn_nest_on_key, spawn_nest).chain(),
-    );
+    app
+      .add_event::<SpawnEvent<Nest>>()
+      .add_systems(Update, (spawn_ants, spawn_nest_on_key, spawn_nest).chain());
   }
 }

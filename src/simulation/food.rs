@@ -1,16 +1,12 @@
+use crate::helpers::{MouseCoords, RectSensor, SpawnEvent};
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::RapierContext;
 use derive_more::{AddAssign, SubAssign};
-
-use crate::helpers::{MouseCoords, SpawnEvent};
-
-//
 
 const FOOD_COLOR: Color = Color::GREEN;
 const FOOD_SCALE: Vec2 = Vec2::splat(5.0);
 
 const START_FOOD: FoodStore = FoodStore(5);
-
-//
 
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct FoodMarker;
@@ -22,6 +18,7 @@ pub struct FoodStore(pub u16);
 pub struct Food {
   marker: FoodMarker,
   store: FoodStore,
+  collider: RectSensor,
   sprite: SpriteBundle,
 }
 
@@ -30,6 +27,7 @@ impl Default for Food {
     Self {
       marker: default(),
       store: START_FOOD,
+      collider: RectSensor::from(FOOD_SCALE),
       sprite: SpriteBundle {
         sprite: Sprite {
           color: FOOD_COLOR,
@@ -53,7 +51,7 @@ impl Food {
 //
 
 fn spawn_food(mut spawn_events: EventReader<SpawnEvent<Food>>, mut commands: Commands) {
-  for event in spawn_events.read() {
+  for event in spawn_events.iter() {
     commands.spawn(Food::new(event.pos()));
   }
 }
@@ -68,6 +66,26 @@ fn spawn_food_on_keypress(
   }
 }
 
+fn consume_food(
+  mut consumers: Query<(Entity, &mut FoodStore), Without<FoodMarker>>,
+  mut food: Query<(Entity, &mut FoodStore), With<FoodMarker>>,
+  mut commands: Commands,
+  context: Res<RapierContext>,
+) {
+  // This is O(mn) but I've tried to minimise this as much as possible
+  for (source_id, mut source) in food.iter_mut() {
+    // @todo can parallelise here
+    if let Some(mut store) = consumers
+      .iter_mut()
+      .find_map(|(id, store)| context.intersection_pair(source_id, id).map(|_| store))
+    {
+      commands.entity(source_id).despawn();
+      *store += *source;
+      *source = FoodStore(0);
+    }
+  }
+}
+
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct FoodPlugin;
 
@@ -75,6 +93,6 @@ impl Plugin for FoodPlugin {
   fn build(&self, app: &mut App) {
     app
       .add_event::<SpawnEvent<Food>>()
-      .add_systems(Update, (spawn_food, spawn_food_on_keypress));
+      .add_systems(Update, (spawn_food, spawn_food_on_keypress, consume_food));
   }
 }
