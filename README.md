@@ -2,13 +2,15 @@
 
 ### TODO
 
-- [X] Add Food
-  - [X] Add Food entities
-  - [X] Enable Food pickup by Ants and Nests
 - [ ] Add Pheremones
 - [ ] Make Ants follow Pheremones
 
 ### Changelog
+
+#### 1.1.1
+
+- Ants can finally have their food and eat it! (Food can be picked up)
+- Downgrades `bevy` back to `0.11`, as it was incompatible with latest `rapier`
 
 #### 1.1.0
 
