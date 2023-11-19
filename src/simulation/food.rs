@@ -51,7 +51,7 @@ impl Food {
 //
 
 fn spawn_food(mut spawn_events: EventReader<SpawnEvent<Food>>, mut commands: Commands) {
-  for event in spawn_events.iter() {
+  for event in spawn_events.read() {
     commands.spawn(Food::new(event.pos()));
   }
 }

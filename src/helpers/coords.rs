@@ -17,7 +17,6 @@ fn simple_cursor_system(
   // query to get camera transform
   camera_query: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 ) {
-  // @warn assumes single window, single camera
   // both these queries will panic if != 1 window / camera
   let (camera, camera_transform) = camera_query.single();
   let window = window_query.single();

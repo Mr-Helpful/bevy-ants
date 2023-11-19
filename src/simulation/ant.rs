@@ -74,7 +74,7 @@ fn spawn_ants(
   mut spawn_events: EventReader<SpawnEvent<Ant>>,
   mut rng: ResMut<GlobalRng>,
 ) {
-  for event in spawn_events.iter() {
+  for event in spawn_events.read() {
     commands.spawn(Ant::new(event.pos(), &mut rng));
   }
 }
@@ -114,10 +114,10 @@ fn move_ants(mut query: Query<(&mut Transform, &mut Kinetic), With<AntMarker>>, 
 /// Despawn ants outside the FOV.
 fn despawn_ants(
   mut commands: Commands,
-  query: Query<(Entity, &ComputedVisibility), With<AntMarker>>,
+  query: Query<(Entity, &InheritedVisibility), With<AntMarker>>,
 ) {
   for (entity, visibility) in &query {
-    if !visibility.is_visible() {
+    if !visibility.get() {
       commands.entity(entity).despawn();
     }
   }
