@@ -4,10 +4,16 @@ use bevy::prelude::*;
 pub struct CameraPlugin;
 
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
-pub struct MainCamera;
+pub struct MainCameraMarker;
+
+#[derive(Bundle, Default)]
+pub struct MainCamera {
+  marker: MainCameraMarker,
+  camera: Camera2dBundle,
+}
 
 fn setup(mut commands: Commands) {
-  commands.spawn((Camera2dBundle::default(), MainCamera));
+  commands.spawn(MainCamera::default());
 }
 
 impl Plugin for CameraPlugin {

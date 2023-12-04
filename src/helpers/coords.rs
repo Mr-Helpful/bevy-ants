@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use super::camera::MainCamera;
+use super::camera::MainCameraMarker;
 
 /// We will store the world position of the mouse cursor here.
 #[derive(Resource, Clone, Copy, Default, Debug, PartialEq)]
@@ -15,7 +15,7 @@ fn simple_cursor_system(
   // query to get the window (so we can read the current cursor position)
   window_query: Query<&Window, With<PrimaryWindow>>,
   // query to get camera transform
-  camera_query: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+  camera_query: Query<(&Camera, &GlobalTransform), With<MainCameraMarker>>,
 ) {
   // both these queries will panic if != 1 window / camera
   let (camera, camera_transform) = camera_query.single();
