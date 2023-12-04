@@ -32,5 +32,7 @@ I'm going to be using a 2 camera approach to implement Pheremone placing.
 #### Details
 
 - The secondary camera uses a compute shader for blurring and dimming.
-  - [ ] Need to learn a bit about compute shaders in bevy for this one.
+  - [ ] Need to learn a bit about compute shaders in bevy for this one, see:
+    - <https://bevyengine.org/examples/Shaders/animate-shader/>
+    - <https://github.com/alphastrata/shadplay/>
 - The rendering of the pheremones + background is controlled with [Render Layers](https://bevy-cheatbook.github.io/graphics/camera.html#render-layers)
