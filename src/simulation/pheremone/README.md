@@ -35,4 +35,10 @@ I'm going to be using a 2 camera approach to implement Pheremone placing.
   - [ ] Need to learn a bit about compute shaders in bevy for this one, see:
     - <https://bevyengine.org/examples/Shaders/animate-shader/>
     - <https://github.com/alphastrata/shadplay/>
-- The rendering of the pheremones + background is controlled with [Render Layers](https://bevy-cheatbook.github.io/graphics/camera.html#render-layers)
+  - [ ] Need to work out how to create a shader for an image handle, see:
+    - <https://bevyengine.org/examples/Shaders/shader-material/>
+- The rendering of the pheremones + background is controlled with render layers
+  - <https://bevy-cheatbook.github.io/graphics/camera.html#render-layers>
+- Rendering to the background is acheived by rendering to its texture
+  - <https://github.com/bevyengine/bevy/discussions/9036>
+  - <https://bevyengine.org/examples/3D%20Rendering/render-to-texture/>
