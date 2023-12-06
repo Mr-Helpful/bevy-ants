@@ -6,10 +6,20 @@ pub struct CameraPlugin;
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct MainCameraMarker;
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub struct MainCamera {
   marker: MainCameraMarker,
   camera: Camera2dBundle,
+}
+
+impl Default for MainCamera {
+  fn default() -> Self {
+    Self {marker: MainCameraMarker, camera: Camera2dBundle {camera: Camera {
+      order: 1,
+      ..default()
+    },
+    ..default()}}
+  }
 }
 
 fn setup(mut commands: Commands) {
