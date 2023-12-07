@@ -1,9 +1,5 @@
 use bevy::{prelude::*, render::{render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}, camera::RenderTarget}};
 
-mod background;
-mod marker;
-mod camera;
-
 fn setup(
   mut commands: Commands,
   mut images: ResMut<Assets<Image>>,
