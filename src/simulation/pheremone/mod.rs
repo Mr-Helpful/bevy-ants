@@ -14,8 +14,10 @@ use bevy::{
 pub struct BlurMaterial {
   #[uniform(0)]
   background: Color,
-  #[texture(1)]
-  #[sampler(2)]
+  #[uniform(1)]
+  stddev: f32,
+  #[texture(2)]
+  #[sampler(3)]
   texture: Handle<Image>,
 }
 
@@ -71,6 +73,7 @@ fn setup(
   commands.spawn(MaterialMesh2dBundle {
     mesh: meshes.add(shape::Quad::new(size_vec).into()).into(),
     material: materials.add(BlurMaterial {
+      stddev: 2.0,
       // render custom material from our common image
       texture: image_handle.clone(),
       background: bg_color.0,
