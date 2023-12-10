@@ -43,22 +43,15 @@ fn setup(
     height: 1024,
     ..default()
   };
-  let mut image = Image {
-    texture_descriptor: TextureDescriptor {
-      label: None,
-      size,
-      sample_count: 1,
-      mip_level_count: 1,
-      dimension: TextureDimension::D2,
-      format: TextureFormat::Bgra8UnormSrgb,
-      usage: TextureUsages::TEXTURE_BINDING
-        | TextureUsages::COPY_DST
-        | TextureUsages::RENDER_ATTACHMENT,
-      view_formats: &[],
-    },
-    ..default()
-  };
-  image.resize(size);
+  let mut image = Image::new_fill(
+    size,
+    TextureDimension::D2,
+    &bg_color.0.as_rgba_u8(),
+    TextureFormat::Bgra8UnormSrgb
+  );
+  image.texture_descriptor.usage = TextureUsages::TEXTURE_BINDING
+    | TextureUsages::COPY_DST
+    | TextureUsages::RENDER_ATTACHMENT;
   let image_handle = images.add(image);
 
   // Spawn a camera to render the recursive background
