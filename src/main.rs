@@ -16,6 +16,11 @@ fn main() {
     // Libary Plugins
     .add_plugins(RapierPhysicsPlugin::<()>::default())
     // Ant Simulation
-    .add_plugins((AntPlugin::default(), NestPlugin, FoodPlugin, PheremonePlugin))
+    .add_plugins((
+      AntPlugin::default(),
+      NestPlugin,
+      FoodPlugin,
+      PheremonePlugin::new(1, 2.0),
+    ))
     .run();
 }
