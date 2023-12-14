@@ -1,10 +1,13 @@
 use super::food::FoodStore;
+use super::pheremone::Trail;
+use super::PheremonePlugin;
 use crate::helpers::{Kinetic, MouseCoords, RectSensor, SpawnEvent};
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 use std::f32::consts::PI;
 use std::ops::RangeInclusive;
 
+const PHEREMONE_LAYER: u8 = 1;
 const ANT_COLOR: Color = Color::BLUE;
 const ANT_SCALE: Vec2 = Vec2::splat(2.0);
 
@@ -21,6 +24,15 @@ pub enum AntState {
   #[default]
   Searching,
   // Backtracking, // For when we improve ant AI.
+}
+
+impl AntState {
+  pub fn color(&self) -> Color {
+    use AntState::*;
+    match &self {
+      Searching => Color::RED
+    }
+  }
 }
 
 #[derive(Bundle, Clone)]
@@ -75,7 +87,14 @@ fn spawn_ants(
   mut rng: ResMut<GlobalRng>,
 ) {
   for event in spawn_events.read() {
-    commands.spawn(Ant::new(event.pos(), &mut rng));
+    let ant = Ant::new(event.pos(), &mut rng);
+    let trail = Trail::new(PHEREMONE_LAYER, ant.brain.color(), ANT_SCALE);
+
+    commands
+      .spawn(ant)
+      .with_children(|children| {
+        children.spawn(trail);
+      });
   }
 }
 
@@ -123,6 +142,9 @@ fn despawn_ants(
   }
 }
 
+#[derive(Component, Default)]
+pub struct AntCanvasMarker;
+
 /// ## Overview
 ///
 /// Moves ants and allows ants to be spawned in a simulation.
@@ -145,6 +167,7 @@ impl Plugin for AntPlugin {
 
     app
       .add_plugins(rng_plugin)
+      .add_plugins(PheremonePlugin::<AntCanvasMarker>::new(1, 2.0))
       .add_event::<SpawnEvent<Ant>>()
       .add_systems(
         Update,

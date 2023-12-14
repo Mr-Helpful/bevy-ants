@@ -6,21 +6,15 @@ mod simulation;
 
 use bevy_rapier2d::prelude::RapierPhysicsPlugin;
 use helpers::{CameraPlugin, CoordsPlugin};
-use simulation::{AntPlugin, FoodPlugin, NestPlugin, PheremonePlugin};
+use simulation::{AntPlugin, FoodPlugin, NestPlugin};
 
 fn main() {
   App::new()
     // Helpers / Camera management
     .add_plugins((DefaultPlugins, CameraPlugin, CoordsPlugin))
-    .insert_resource(ClearColor(Color::BLACK))
     // Libary Plugins
     .add_plugins(RapierPhysicsPlugin::<()>::default())
     // Ant Simulation
-    .add_plugins((
-      AntPlugin::default(),
-      NestPlugin,
-      FoodPlugin,
-      PheremonePlugin::new(1, 2.0),
-    ))
+    .add_plugins((AntPlugin::default(), NestPlugin, FoodPlugin))
     .run();
 }

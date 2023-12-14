@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::{
   prelude::*,
   render::{
@@ -14,14 +16,14 @@ pub use super::material::BlurMaterial;
 pub struct CanvasMarker;
 
 #[derive(Bundle, Default)]
-pub struct Canvas {
-  marker: CanvasMarker,
+pub struct Canvas<M: Component + Default> {
+  marker: M,
   canvas: MaterialMesh2dBundle<BlurMaterial>,
   image: Handle<Image>,
   layers: RenderLayers,
 }
 
-impl Canvas {
+impl<M: Component + Default> Canvas<M> {
   fn new(
     mut meshes: ResMut<Assets<Mesh>>,
     image: Handle<Image>,
@@ -31,7 +33,6 @@ impl Canvas {
   ) -> Self {
     let size = Vec2::new(size.width as f32, size.height as f32);
     Self {
-      marker: CanvasMarker,
       canvas: MaterialMesh2dBundle {
         mesh: meshes.add(shape::Quad::new(size).into()).into(),
         transform: Transform::from_xyz(0.0, 0.0, -1.0),
@@ -40,6 +41,7 @@ impl Canvas {
       },
       image,
       layers: RenderLayers::from_layers(&[0, layer]),
+      ..default()
     }
   }
 }
@@ -72,7 +74,7 @@ impl CanvasCamera {
 
 /// Initialises the pheremone canvas on render layer `layer`
 /// with standard deviation `stddev` (which controls how fast pheremones fade)
-fn setup_canvas(
+fn setup_canvas<M: Default + Component>(
   In((layer, stddev)): In<(u8, f32)>,
   mut commands: Commands,
   mut materials: ResMut<Assets<BlurMaterial>>,
@@ -109,26 +111,27 @@ fn setup_canvas(
     texture: image.clone(),
     background: bg_color.0,
   });
-  commands.spawn(Canvas::new(meshes, image, texture, size, layer));
+  commands.spawn(Canvas::<M>::new(meshes, image, texture, size, layer));
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct PheremonePlugin {
+pub struct PheremonePlugin<M = CanvasMarker> {
   pub layer: u8,
   pub stddev: f32,
+  pub marker: PhantomData<M>
 }
 
-impl PheremonePlugin {
+impl<M> PheremonePlugin<M> {
   pub fn new(layer: u8, stddev: f32) -> Self {
-    Self { layer, stddev }
+    Self { layer, stddev, marker: PhantomData }
   }
 }
 
-impl Plugin for PheremonePlugin {
+impl<M: Component + Default> Plugin for PheremonePlugin<M> {
   fn build(&self, app: &mut App) {
     let params = (self.layer, self.stddev);
     app
       .add_plugins(Material2dPlugin::<BlurMaterial>::default())
-      .add_systems(Startup, (move || params).pipe(setup_canvas));
+      .add_systems(Startup, (move || params).pipe(setup_canvas::<M>));
   }
 }
