@@ -52,7 +52,7 @@ fn blurred_texture(
   for (var j = -radius; j <= radius; j++) {
     for (var i = -radius; i <= radius; i++) {
       let offset = pos + vec2(f32(i), f32(j)) / resolution;
-      let pixel = textureSample(bg_texture, bg_sampler, offset);
+      var pixel = textureSample(bg_texture, bg_sampler, offset);
 
       if (i * i + j * j <= radius * radius) {
         let kernel_2d = kernel[i + radius] * kernel[j + radius];
