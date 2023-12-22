@@ -1,9 +1,14 @@
-use crate::helpers::{MouseCoords, RectSensor, SpawnEvent};
+use crate::{
+  helpers::{MouseCoords, RectSensor, SpawnEvent},
+  PHEREMONE_LAYER,
+};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
 use derive_more::{AddAssign, SubAssign};
 
-const FOOD_COLOR: Color = Color::GREEN;
+use super::pheremone::Trail;
+
+pub const FOOD_COLOR: Color = Color::GREEN;
 const FOOD_SCALE: Vec2 = Vec2::splat(5.0);
 
 const START_FOOD: FoodStore = FoodStore(5);
@@ -52,7 +57,12 @@ impl Food {
 
 fn spawn_food(mut spawn_events: EventReader<SpawnEvent<Food>>, mut commands: Commands) {
   for event in spawn_events.read() {
-    commands.spawn(Food::new(event.pos()));
+    let trail = Trail::new(PHEREMONE_LAYER, FOOD_COLOR, FOOD_SCALE);
+    commands
+      .spawn(Food::new(event.pos()))
+      .with_children(|children| {
+        children.spawn(trail);
+      });
   }
 }
 
@@ -79,7 +89,7 @@ fn consume_food(
       .iter_mut()
       .find_map(|(id, store)| context.intersection_pair(source_id, id).map(|_| store))
     {
-      commands.entity(source_id).despawn();
+      commands.entity(source_id).despawn_recursive();
       *store += *source;
       *source = FoodStore(0);
     }

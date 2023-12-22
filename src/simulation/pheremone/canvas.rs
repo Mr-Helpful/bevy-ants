@@ -118,12 +118,16 @@ fn setup_canvas<M: Default + Component>(
 pub struct PheremonePlugin<M = CanvasMarker> {
   pub layer: u8,
   pub stddev: f32,
-  pub marker: PhantomData<M>
+  pub marker: PhantomData<M>,
 }
 
 impl<M> PheremonePlugin<M> {
   pub fn new(layer: u8, stddev: f32) -> Self {
-    Self { layer, stddev, marker: PhantomData }
+    Self {
+      layer,
+      stddev,
+      marker: PhantomData,
+    }
   }
 }
 

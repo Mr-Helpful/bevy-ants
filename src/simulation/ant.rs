@@ -1,7 +1,9 @@
 use super::food::FoodStore;
+use super::food::FOOD_COLOR;
+use super::nest::NEST_COLOR;
 use super::pheremone::Trail;
-use super::PheremonePlugin;
-use crate::helpers::{Kinetic, MouseCoords, RectSensor, SpawnEvent};
+use crate::helpers::{ArcSampler, Kinetic, MouseCoords, PointSampler, RectSensor, SpawnEvent};
+use crate::CanvasMarker;
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 use std::f32::consts::PI;
@@ -29,8 +31,15 @@ pub enum AntState {
 impl AntState {
   pub fn color(&self) -> Color {
     use AntState::*;
-    match &self {
-      Searching => Color::RED
+    match self {
+      Searching => NEST_COLOR,
+    }
+  }
+
+  pub fn follow(&self) -> Color {
+    use AntState::*;
+    match self {
+      Searching => FOOD_COLOR,
     }
   }
 }
@@ -90,9 +99,7 @@ fn spawn_ants(
     let ant = Ant::new(event.pos(), &mut rng);
     let trail = Trail::new(PHEREMONE_LAYER, ant.brain.color(), ANT_SCALE);
 
-    commands
-      .spawn(ant)
-      .with_children(|children| {
+    commands.spawn(ant).with_children(|children| {
         children.spawn(trail);
       });
   }
@@ -141,9 +148,6 @@ fn despawn_ants(
     }
   }
 }
-
-#[derive(Component, Default)]
-pub struct AntCanvasMarker;
 
 /// ## Overview
 ///

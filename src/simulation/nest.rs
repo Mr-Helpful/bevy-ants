@@ -1,9 +1,10 @@
-use super::ant::Ant;
 use super::food::FoodStore;
+use super::{ant::Ant, pheremone::Trail};
 use crate::helpers::{MouseCoords, RectSensor, SpawnEvent};
+use crate::PHEREMONE_LAYER;
 use bevy::prelude::*;
 
-const NEST_COLOR: Color = Color::RED;
+pub const NEST_COLOR: Color = Color::RED;
 const NEST_SCALE: Vec2 = Vec2::splat(10.0);
 
 const START_FOOD: FoodStore = FoodStore(50);
@@ -48,7 +49,12 @@ impl Nest {
 
 fn spawn_nest(mut spawn_events: EventReader<SpawnEvent<Nest>>, mut commands: Commands) {
   for event in spawn_events.read() {
-    commands.spawn(Nest::new(event.pos()));
+    let trail = Trail::new(PHEREMONE_LAYER, NEST_COLOR, NEST_SCALE);
+    commands
+      .spawn(Nest::new(event.pos()))
+      .with_children(|children| {
+        children.spawn(trail);
+      });
   }
 }
 
