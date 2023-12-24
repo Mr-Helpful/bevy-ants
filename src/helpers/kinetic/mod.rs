@@ -34,12 +34,11 @@ impl Kinetic {
   ///
   /// * `direction` - a unit vector specifying the direction to move towards
   pub fn move_in(&mut self, direction: Vec2, strength: f32) -> &mut Self {
-    let vec_length = if self.velocity != Vec2::ZERO {
-      self.velocity.length()
-    } else {
-      1.0
-    };
-    self.move_to(direction.normalize_or_zero() * vec_length, strength)
+    let mut length = self.velocity.length();
+    if length == 0.0 {
+      length = 1.0;
+    }
+    self.move_to(direction.normalize_or_zero() * length, strength)
   }
 
   /// Resets the currently stored acceleration

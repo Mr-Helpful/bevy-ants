@@ -2,8 +2,10 @@ use super::food::FoodStore;
 use super::food::FOOD_COLOR;
 use super::nest::NEST_COLOR;
 use super::pheremone::Trail;
-use crate::helpers::{ArcSampler, Kinetic, MouseCoords, PointSampler, RectSensor, SpawnEvent};
+use crate::helpers::ImageSampler;
+use crate::helpers::{Kinetic, MouseCoords, PointSampler, RectSensor, SpawnEvent};
 use crate::CanvasMarker;
+use bevy::log;
 use bevy::prelude::*;
 use bevy_turborand::prelude::*;
 use std::f32::consts::PI;
@@ -17,6 +19,10 @@ const ANT_SPEED_LIMITS: RangeInclusive<f32> = 20.0..=30.0;
 const ANT_ACCEL_LIMITS: RangeInclusive<f32> = 25.0..=30.0;
 
 const ANT_WANDER_STRENGTH: f32 = 0.2;
+const ANT_PHEREMONE_STRENGTH: f32 = 1.0;
+
+#[derive(Resource, Default, Deref)]
+struct AntSampler<S: PointSampler>(S);
 
 #[derive(Component, Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub struct AntMarker;
@@ -100,8 +106,8 @@ fn spawn_ants(
     let trail = Trail::new(PHEREMONE_LAYER, ant.brain.color(), ANT_SCALE);
 
     commands.spawn(ant).with_children(|children| {
-        children.spawn(trail);
-      });
+      children.spawn(trail);
+    });
   }
 }
 
@@ -120,6 +126,42 @@ fn random_wander(mut query: Query<(&mut Kinetic, &mut RngComponent), With<AntMar
   for (mut kinetic, mut rng) in &mut query {
     let direction = Vec2::from_angle(2.0 * PI * rng.f32());
     kinetic.move_in(direction, ANT_WANDER_STRENGTH);
+  }
+}
+
+fn follow_pheremones<S: PointSampler + 'static>(
+  sampler: Res<AntSampler<S>>,
+  mut query: Query<(&mut Kinetic, &AntState), With<AntMarker>>,
+  background: Query<&Handle<Image>, With<CanvasMarker>>,
+  images: Res<Assets<Image>>,
+) {
+  let Some(image) = background
+    .get_single()
+    .ok()
+    .and_then(|handle| images.get(handle))
+  else {
+    return
+  };
+  let Ok(im_sampler) = ImageSampler::try_from(image) else {
+    return
+  };
+  let dims = Vec2::new(
+    image.width() as f32,
+    image.height() as f32,
+  );
+  // let n = (dims.x * dims.y) as usize;
+  // for (c, name) in ["r", "g", "b", "a"].into_iter().enumerate() {
+  //   let sum: u32 = (0..n).map(|i| image.data[i*4+c] as u32).sum();
+  //   log::info!("sum(image.{name}) = {sum}");
+  // }
+
+  for (mut kinetic, state) in &mut query {
+    let weights = Vec3::from_slice(&state.follow().as_rgba_f32());
+    let mut transform = kinetic.transform();
+    transform.translation += dims.extend(0.0) / 2.0;
+
+    let direction = sampler.upwards(transform, 20, &im_sampler, weights);
+    kinetic.move_in(direction, ANT_PHEREMONE_STRENGTH);
   }
 }
 
@@ -152,16 +194,10 @@ fn despawn_ants(
 /// ## Overview
 ///
 /// Moves ants and allows ants to be spawned in a simulation.
-#[derive(Default, Debug)]
-pub struct AntPlugin(Option<u64>);
+#[derive(Debug)]
+pub struct AntPlugin<S>(pub Option<u64>, pub S);
 
-impl From<u64> for AntPlugin {
-  fn from(value: u64) -> Self {
-    Self(Some(value))
-  }
-}
-
-impl Plugin for AntPlugin {
+impl<S: PointSampler + 'static> Plugin for AntPlugin<S> {
   fn build(&self, app: &mut App) {
     // @todo add wall collisions to prevent ants escaping
     let mut rng_plugin = RngPlugin::default();
@@ -170,8 +206,8 @@ impl Plugin for AntPlugin {
     }
 
     app
+      .insert_resource(AntSampler(self.1))
       .add_plugins(rng_plugin)
-      .add_plugins(PheremonePlugin::<AntCanvasMarker>::new(1, 2.0))
       .add_event::<SpawnEvent<Ant>>()
       .add_systems(
         Update,
@@ -179,7 +215,7 @@ impl Plugin for AntPlugin {
           // get the smallest no. ants spawned
           despawn_ants,
           // decide where to move for each ant
-          (random_wander,),
+          (random_wander, follow_pheremones::<S>),
           // run ant actions after deciding where to move
           (move_ants, spawn_ant_on_key, spawn_ants),
         )
