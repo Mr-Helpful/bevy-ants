@@ -65,14 +65,70 @@ fn blurred_texture(
   return vec4(color / total, 1.0);
 }
 
+fn cubic_fade(x: f32) -> f32 {
+  return x * x * (x * -2.0 + 3.0);
+}
+
+fn quintic_fade(x: f32) -> f32 {
+  return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+}
+
+/// A function that steps from y = 1.0 -> 0.0 from x = w -> 1.0
+/// 
+/// step_down x w
+///   { assert 0 <= w < 1 }
+///   |      x < w = 1
+///   | w <= x < 1 = lerp w 0 ((x - w)/w)
+///   | 1 <= x     = 0
+/// 
+/// i.e. a shape very much like:
+/// __________  1
+///    |     |\ |
+///    |     | \|
+///    |     |  ___________
+///    0     width
+/// see [desmos](https://www.desmos.com/calculator/tj64xjpip6)
+fn step_down(x: f32, width: f32) -> f32 {
+  return clamp((1.0 - x) / (1.0 - width), 0.0, 1.0);
+}
+
+/// A box with smoothed off corners, starting at w
+/// This looks a little bit like keycaps on external keyboards
+/// Look at `assets/documentation/shaders/edge_falloff_shader.webm`
+fn box_fade(uv: vec2<f32>, width: f32) -> f32 {
+  // convert to [-1, 1] x [-1, 1]
+  let xy = 2.0 * uv - 1.0;
+  // calculate the box fade
+  let u = quintic_fade(step_down(abs(xy.x), width));
+  let v = quintic_fade(step_down(abs(xy.y), width));
+  return u * v;
+}
+
+const W: f32 = 0.99;
+
+fn fade_on_edge(
+  uv: vec2<f32>,
+  pixel: vec4<f32>,
+  color: vec4<f32>,
+) -> vec4<f32> {
+  let t = box_fade(uv, W);
+  return (1.0 - t) * color + t * pixel;
+}
+
+fn biased_round(x: vec4<f32>, f: vec4<f32>) -> vec4<f32> {
+  let frac_lte = step(fract(x), f);
+  return floor(x) * frac_lte + ceil(x) * (1.0 - frac_lte);
+}
+
 @fragment
 fn fragment(
   mesh: VertexOutput,
 ) -> @location(0) vec4<f32> {
   var pixel = blurred_texture(mesh.uv, stddev, bg_color);
+  pixel = fade_on_edge(mesh.uv, pixel, bg_color);
   if length((pixel - bg_color).xyz) < 1.0/100.0 {
     return bg_color;
   } else {
-    return pixel;
+    return biased_round(pixel * 256.0, vec4(0.75))/256.0;
   }
 }
